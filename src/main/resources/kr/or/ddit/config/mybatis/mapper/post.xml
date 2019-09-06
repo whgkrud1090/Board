@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="post">
+	<select id="getPostList" resultType="post" parameterType="Integer">
+		select postId, parentpostId, 
+		lpad(' →', (level-1)*4, ' ' ) || postNm as postNm, level, userId, TO_CHAR(postUp, 'YYYY/MM/DD') as postUp
+		from a_post
+		where boardId = #{boardId}
+		start with parentpostId is null
+		connect by prior postId = parentpostId
+		order siblings by gn desc, postId
+	</select>
+	
+	<select id="getUser" parameterType="String" resultType="user">
+		select *
+		from users
+		where userId = #{userId}	
+	</select>
+	
+	<select id="getPostPagingList" resultType="post" parameterType="Integer">
+		select a.* from
+		    (select rownum rn, a.* from
+		        (select postId, parentpostId, lpad('→ ', (level-1)*4, ' ' ) || 
+		        postNm as postNm, level, userId, TO_CHAR(postUp, 'YYYY/MM/DD') as postUp
+		        from a_post
+				  where boardId = #{boardId}
+				  start with parentpostId is null
+				connect by prior postId = parentpostId
+				  order siblings by gn desc, postId) a
+				)a
+	    where rn between #{pagesize}*(#{page} - 1) + 1 and #{pagesize}*#{page}
+	</select>
+	
+	<select id="getPostTotalCnt" resultType="Integer" parameterType="post">
+    select count(*)
+      from a_post
+      where boardId=#{boardId}
+	</select>
+	
+	<select id="getPostRead" resultType="post" parameterType="Integer">
+    select *
+      from a_post
+      where postId=#{postId}
+	</select>
+	
+	<insert id="insertFile" parameterType="atta">
+	insert into a_attachment
+	values (a_attachment_seq.nextval , #{postId}, #{upFilenm }, #{detailFile})
+	</insert>
+	
+	<select id="getFile" resultType="atta" parameterType="Integer"> 
+	select * from a_attachment where postId = #{postId }
+	</select>
+	
+	<insert id="newPost" parameterType="post">
+	insert into a_post  (postId, boardId,userId, postNm, postCont, postup, postdel)
+	values
+	(a_post_seq.nextval, #{boardId}, #{userId}, #{postNm}, #{postCont}, SYSDATE, 0)
+	</insert>
+</mapper>
+

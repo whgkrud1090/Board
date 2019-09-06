@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="board">
+	<select id="getBoardList" resultType="board">
+		select * from a_board
+	</select>
+	
+	<select id="getUser" parameterType="String" resultType="user">
+		select *
+		from users
+		where userId = #{userId}	
+	</select>
+	
+	<insert id="insertNewBoard" parameterType="board">
+		insert into a_board (boardId, userId, boardNm, useCk, boardUp)
+		values(a_board_seq.nextval, #{userId}, #{boardNm, jdbcType=VARCHAR}, #{useCk, jdbcType=VARCHAR}, sysdate)
+	</insert>
+	
+	<update id="updateBoard" parameterType="board" >
+		update a_board form set 
+		useCk = #{useCk}, 
+		boardUp = sysdate
+		where boardId = #{boardId}
+	</update>
+</mapper>
+
